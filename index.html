@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -16,78 +16,78 @@
   <style>
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    #map { height: 600px; width: 100%; border-radius: 0.75rem; z-index: 10; }
+    #map { height: 640px; width: 100%; border-radius: 0.75rem; z-index: 10; }
     .leaflet-popup-content-wrapper {
       background-color: #0f172a;
       color: #f1f5f9;
       border: 1px solid #334155;
       border-radius: 0.75rem;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6);
     }
     .leaflet-popup-tip {
       background-color: #0f172a;
     }
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+    .badge-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
     }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
+    /* Estilos de pulsación para alertas */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.15); opacity: 0.4; }
+      100% { transform: scale(0.95); opacity: 0.8; }
     }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 3px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
+    .alert-road {
+      animation: pulse-ring 2s infinite ease-in-out;
     }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
 
   <!-- Header Táctico -->
-  <header class="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-wrap justify-between items-center shadow-2xl">
+  <header class="bg-slate-900 border-b border-slate-800 px-6 py-3.5 flex flex-wrap justify-between items-center shadow-2xl">
     <div class="flex items-center space-x-3">
-      <div class="bg-red-600 text-white p-3 rounded-2xl shadow-lg ring-4 ring-red-500/20">
-        <i class="fa-solid fa-layer-group text-2xl"></i>
+      <div class="bg-red-600 text-white p-2.5 rounded-2xl shadow-lg ring-4 ring-red-500/20">
+        <i class="fa-solid fa-layer-group text-xl"></i>
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-xl font-bold tracking-tight text-white">ResQ-Prioritizer</h1>
-          <span class="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2.5 py-0.5 rounded-full font-semibold">Valparaíso Geo-Spatial</span>
-          <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">ArcGIS & SIT Integrado</span>
+          <h1 class="text-xl font-black tracking-tight text-white">ResQ-Prioritizer</h1>
+          <span class="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-semibold">Valparaíso Táctico</span>
+          <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono hidden sm:inline">COGRID / SENAPRED</span>
         </div>
-        <p class="text-xs text-slate-400">Triage Territorial, Uso de Suelo (Campamentos vs. Industrias HazMat) y Pre-FIBE</p>
+        <p class="text-xs text-slate-400">Triage Territorial, Georreferenciación de Vulnerabilidad y Catastro Post-Emergencia</p>
       </div>
     </div>
 
-    <!-- Indicadores de Estado -->
-    <div class="flex items-center space-x-3 mt-3 sm:mt-0">
-      <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 text-xs flex items-center gap-2">
+    <!-- Indicadores de Red y Alerta -->
+    <div class="flex items-center space-x-3 mt-3 sm:mt-0 text-xs">
+      <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="text-slate-300 font-medium">Uso Suelo: Catastro Minvu/SII</span>
+        <span class="text-slate-300 font-medium">Modo Edge (Offline-First)</span>
       </div>
-      <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 text-xs flex items-center gap-2">
-        <i class="fa-solid fa-industry text-purple-400"></i>
-        <span class="text-slate-300 font-medium">Capas HazMat: Activas</span>
+      <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
+        <i class="fa-solid fa-hospital text-blue-400"></i>
+        <span class="text-slate-300 font-medium">Red Salud: Activa</span>
       </div>
-      <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700 text-xs flex items-center gap-2">
-        <span id="header-alert-pill" class="px-2.5 py-0.5 rounded-md font-bold bg-red-600 text-white text-[11px] shadow">ALERTA ROJA ACTIVA</span>
+      <div class="bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-2">
+        <span class="px-2.5 py-0.5 rounded-md font-bold bg-red-600 text-white text-[11px] shadow">ALERTA ROJA MULTIRRIESGO</span>
       </div>
     </div>
   </header>
 
-  <!-- Barra de Pestañas -->
+  <!-- Navegación de Pestañas -->
   <nav class="bg-slate-900/90 border-b border-slate-800 px-6 flex space-x-2 overflow-x-auto">
     <button onclick="switchTab('tab-map')" id="btn-tab-map" class="tab-btn px-4 py-3 text-xs md:text-sm font-semibold border-b-2 border-red-500 text-white flex items-center gap-2 transition">
-      <i class="fa-solid fa-map-location-dot"></i> 1. Visor Táctico & Uso de Suelo
+      <i class="fa-solid fa-map-location-dot"></i> 1. Visor Táctico Integral
     </button>
     <button onclick="switchTab('tab-triage')" id="btn-tab-triage" class="tab-btn px-4 py-3 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 transition">
-      <i class="fa-solid fa-calculator"></i> 2. Matriz IPI Calibrada
+      <i class="fa-solid fa-calculator"></i> 2. Matriz IPI (Triage)
     </button>
     <button onclick="switchTab('tab-multirisk')" id="btn-tab-multirisk" class="tab-btn px-4 py-3 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 transition">
-      <i class="fa-solid fa-triangle-exclamation"></i> 3. Simulador Multirriesgo & HazMat
+      <i class="fa-solid fa-triangle-exclamation"></i> 3. Simulador Multirriesgo
     </button>
     <button onclick="switchTab('tab-fibe')" id="btn-tab-fibe" class="tab-btn px-4 py-3 text-xs md:text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 transition">
       <i class="fa-solid fa-clipboard-user"></i> 4. Pre-FIBE & EDAN
@@ -100,97 +100,144 @@
   <!-- Contenedor Principal -->
   <main class="flex-1 p-6 max-w-7xl w-full mx-auto space-y-6">
 
-    <!-- PESTAÑA 1: VISOR TÁCTICO & USO DE SUELO -->
+    <!-- PESTAÑA 1: VISOR TÁCTICO INTEGRAL -->
     <div id="tab-map" class="tab-content active space-y-4">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
         
-        <!-- Panel Lateral Filtros -->
+        <!-- Panel de Filtro de Capas con Código de Colores -->
         <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-800 pb-2">
             <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">
-              Uso de Suelo & Capas
+              Control de Capas y Colores
             </h2>
-            <i class="fa-solid fa-sliders text-red-500"></i>
+            <i class="fa-solid fa-palette text-red-500"></i>
           </div>
 
-          <!-- Filtros de Uso de Suelo -->
+          <!-- Bloque: Vulnerabilidad Crítica -->
           <div class="space-y-2 text-xs">
-            <div class="text-[11px] font-bold uppercase text-slate-400 pt-1">Clasificación Predial:</div>
+            <div class="text-[11px] font-bold uppercase text-slate-400 pt-1 flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation text-red-400"></i> Vulnerabilidad Crítica:
+            </div>
             
-            <label class="flex items-center justify-between p-2 rounded-lg bg-orange-950/40 border border-orange-700/50 cursor-pointer hover:bg-orange-900/40 transition">
-              <span class="flex items-center gap-2 text-orange-200">
+            <label class="flex items-center justify-between p-2 rounded-lg bg-red-950/40 border border-red-700/50 cursor-pointer hover:bg-red-900/30 transition">
+              <span class="flex items-center gap-2 text-red-200 font-medium">
+                <input type="checkbox" id="layer-postrados" checked onchange="toggleLayers()" class="rounded text-red-600 focus:ring-0">
+                <span>Dependencia Severa (4.474)</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-red-600 text-white font-bold text-[10px]">Rojo Carmesí</span>
+            </label>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-amber-950/40 border border-amber-700/50 cursor-pointer hover:bg-amber-900/30 transition">
+              <span class="flex items-center gap-2 text-amber-200 font-medium">
+                <input type="checkbox" id="layer-electro" checked onchange="toggleLayers()" class="rounded text-amber-500 focus:ring-0">
+                <span>Electrodependientes (SEC)</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-amber-500 text-slate-950 font-bold text-[10px]">Amarillo / Rayo</span>
+            </label>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-rose-950/40 border border-rose-700/50 cursor-pointer hover:bg-rose-900/30 transition">
+              <span class="flex items-center gap-2 text-rose-200 font-medium">
+                <input type="checkbox" id="layer-bloqueos" checked onchange="toggleLayers()" class="rounded text-rose-500 focus:ring-0">
+                <span>Cortes Vía (Santos Ossa/Pólvora)</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-rose-600 text-white font-bold text-[10px]">Rosa Neón</span>
+            </label>
+          </div>
+
+          <!-- Bloque: Red de Salud y Albergues -->
+          <div class="space-y-2 text-xs pt-2 border-t border-slate-800">
+            <div class="text-[11px] font-bold uppercase text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-hospital text-blue-400"></i> Red Asistencial & Resguardo:
+            </div>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-blue-950/40 border border-blue-700/50 cursor-pointer hover:bg-blue-900/30 transition">
+              <span class="flex items-center gap-2 text-blue-200 font-medium">
+                <input type="checkbox" id="layer-hospitales" checked onchange="toggleLayers()" class="rounded text-blue-600 focus:ring-0">
+                <span>Hospitales Base</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-blue-600 text-white font-bold text-[10px]">Azul Real</span>
+            </label>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-cyan-950/40 border border-cyan-700/50 cursor-pointer hover:bg-cyan-900/30 transition">
+              <span class="flex items-center gap-2 text-cyan-200 font-medium">
+                <input type="checkbox" id="layer-cesfam" checked onchange="toggleLayers()" class="rounded text-cyan-500 focus:ring-0">
+                <span>CESFAM de Cerros</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-cyan-500 text-slate-950 font-bold text-[10px]">Cian / Calipso</span>
+            </label>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-emerald-950/40 border border-emerald-700/50 cursor-pointer hover:bg-emerald-900/30 transition">
+              <span class="flex items-center gap-2 text-emerald-200 font-medium">
+                <input type="checkbox" id="layer-albergues" checked onchange="toggleLayers()" class="rounded text-emerald-500 focus:ring-0">
+                <span>Albergues Temporales</span>
+              </span>
+              <span class="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-[10px]">Verde Esmeralda</span>
+            </label>
+          </div>
+
+          <!-- Bloque: Uso de Suelo Predial -->
+          <div class="space-y-2 text-xs pt-2 border-t border-slate-800">
+            <div class="text-[11px] font-bold uppercase text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-map text-orange-400"></i> Uso de Suelo (ArcGIS/MINVU):
+            </div>
+
+            <label class="flex items-center justify-between p-2 rounded-lg bg-orange-950/40 border border-orange-700/50 cursor-pointer hover:bg-orange-900/30 transition">
+              <span class="flex items-center gap-2 text-orange-200 font-medium">
                 <input type="checkbox" id="layer-campamentos" checked onchange="toggleLayers()" class="rounded text-orange-600 focus:ring-0">
                 <span>Campamentos / Tomas</span>
               </span>
-              <span class="px-1.5 py-0.5 rounded bg-orange-500/30 text-orange-300 font-bold text-[10px]">Material Ligero</span>
+              <span class="px-2 py-0.5 rounded-full bg-orange-500 text-white font-bold text-[10px]">Naranja</span>
             </label>
 
-            <label class="flex items-center justify-between p-2 rounded-lg bg-purple-950/40 border border-purple-700/50 cursor-pointer hover:bg-purple-900/40 transition">
-              <span class="flex items-center gap-2 text-purple-200">
+            <label class="flex items-center justify-between p-2 rounded-lg bg-purple-950/40 border border-purple-700/50 cursor-pointer hover:bg-purple-900/30 transition">
+              <span class="flex items-center gap-2 text-purple-200 font-medium">
                 <input type="checkbox" id="layer-industrias" checked onchange="toggleLayers()" class="rounded text-purple-600 focus:ring-0">
                 <span>Industrias / HazMat</span>
               </span>
-              <span class="px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-300 font-bold text-[10px]">Químico / Combustible</span>
-            </label>
-
-            <label class="flex items-center justify-between p-2 rounded-lg bg-blue-950/40 border border-blue-700/50 cursor-pointer hover:bg-blue-900/40 transition">
-              <span class="flex items-center gap-2 text-blue-200">
-                <input type="checkbox" id="layer-residencial" checked onchange="toggleLayers()" class="rounded text-blue-600 focus:ring-0">
-                <span>Residencial Consolidado</span>
-              </span>
-              <span class="px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-300 text-[10px]">Plan y Cerros</span>
-            </label>
-
-            <div class="text-[11px] font-bold uppercase text-slate-400 pt-2 border-t border-slate-800">Vulnerabilidad Crítica:</div>
-
-            <label class="flex items-center space-x-2 p-2 rounded bg-slate-800/60 cursor-pointer hover:bg-slate-800 transition">
-              <input type="checkbox" id="layer-postrados" checked onchange="toggleLayers()" class="rounded text-red-600 focus:ring-0">
-              <span class="text-slate-300">Dependencia Severa (4.474 en Valpo)</span>
-            </label>
-
-            <label class="flex items-center space-x-2 p-2 rounded bg-slate-800/60 cursor-pointer hover:bg-slate-800 transition">
-              <input type="checkbox" id="layer-electro" checked onchange="toggleLayers()" class="rounded text-amber-500 focus:ring-0">
-              <span class="text-slate-300">Electrodependientes (SEC)</span>
-            </label>
-
-            <label class="flex items-center space-x-2 p-2 rounded bg-slate-800/60 cursor-pointer hover:bg-slate-800 transition">
-              <input type="checkbox" id="layer-bloqueos" checked onchange="toggleLayers()" class="rounded text-rose-500 focus:ring-0">
-              <span class="text-slate-300">Cortes de Ruta (Santos Ossa / La Pólvora)</span>
+              <span class="px-2 py-0.5 rounded-full bg-purple-600 text-white font-bold text-[10px]">Púrpura</span>
             </label>
           </div>
 
           <!-- Ruteo Táctico -->
           <div class="pt-3 border-t border-slate-800 space-y-2">
-            <h3 class="text-xs font-bold text-slate-300 uppercase">Ruteo de Emergencia Restringido</h3>
-            <button onclick="calcularRutaOptima()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-3 rounded-lg text-xs shadow flex items-center justify-center gap-2 transition">
-              <i class="fa-solid fa-route"></i> Calcular Ruteo Seguro
+            <button onclick="calcularRutaOptima()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 px-3 rounded-lg text-xs shadow-lg flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-route"></i> Calcular Ruteo de Desvío Seguro
             </button>
-            <div id="route-output" class="p-2.5 bg-slate-950 rounded border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
-              Presione para simular despacho sorteando cortes de quebradas y perímetros HazMat.
+            <div id="route-output" class="p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+              Presione para generar ruta sorteando Santos Ossa (bloqueada) y perímetros HazMat.
             </div>
           </div>
         </div>
 
         <!-- Visor del Mapa -->
-        <div class="lg:col-span-3">
+        <div class="lg:col-span-3 space-y-3">
           <div id="map"></div>
-          <!-- Leyenda de colores -->
-          <div class="mt-2 p-3 bg-slate-900 border border-slate-800 rounded-xl flex flex-wrap gap-4 text-xs text-slate-300">
-            <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-full bg-orange-500 inline-block"></span>
-              <span><b>Campamentos / Tomas:</b> Alta vulnerabilidad física y combustibilidad.</span>
+          
+          <!-- Leyenda Visual Clara -->
+          <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-[11px] text-slate-300">
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full bg-red-600 border border-white/40"></span>
+              <span>Postrados (Carmesí)</span>
             </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-full bg-purple-600 inline-block"></span>
-              <span><b>Industrias / Químicos:</b> Riesgo HazMat, combustible y explosión.</span>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full bg-amber-500 border border-white/40"></span>
+              <span>Electrodep. (Amarillo)</span>
             </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-full bg-blue-500 inline-block"></span>
-              <span><b>Residencial:</b> Plan y cerros históricos.</span>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full bg-rose-600 border border-white/40"></span>
+              <span>Corte Vial (Rosa)</span>
             </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-3.5 h-3.5 rounded-full bg-red-600 inline-block"></span>
-              <span><b>Zona Crítica IPI (>0.85)</b></span>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full bg-blue-600 border border-white/40"></span>
+              <span>Hospitales (Azul)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full bg-cyan-500 border border-white/40"></span>
+              <span>CESFAM (Cian)</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 border border-white/40"></span>
+              <span>Albergues (Verde)</span>
             </div>
           </div>
         </div>
@@ -203,12 +250,12 @@
         <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-4">
           <div>
             <h2 class="text-lg font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-calculator text-red-500"></i> Matriz de Prioridad de Intervención (IPI) Integrando Uso de Suelo
+              <i class="fa-solid fa-calculator text-red-500"></i> Matriz de Prioridad de Intervención (IPI) Integrada
             </h2>
-            <p class="text-xs text-slate-400">Algoritmo: IPI = 0.35·Vulnerabilidad Basal (Uso Suelo) + 0.30·Severidad Evento + 0.20·Aislamiento Vial + 0.15·Infraestructura Afectada</p>
+            <p class="text-xs text-slate-400">Algoritmo: IPI = 0.35·Vulnerabilidad Basal + 0.30·Severidad Evento + 0.20·Aislamiento Vial + 0.15·Infraestructura Dañada</p>
           </div>
           <div class="text-xs bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 text-slate-300">
-            Población 60+: <b>64.009</b> | Dependencia Severa: <b>4.474</b> (Dossier SENAMA 2026)
+            Valparaíso: <b>64.009</b> personas 60+ | <b>4.474</b> Dependientes Severos (SENAMA 2026)
           </div>
         </div>
 
@@ -217,8 +264,8 @@
             <thead class="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
               <tr>
                 <th class="p-3">Sector / Cerro</th>
-                <th class="p-3">Uso de Suelo Predominante</th>
-                <th class="p-3">Pob. 60+ / Dep. Severa</th>
+                <th class="p-3">Uso de Suelo</th>
+                <th class="p-3">Adultos Mayores / Postrados</th>
                 <th class="p-3">Electrodep.</th>
                 <th class="p-3">Estado Vial</th>
                 <th class="p-3">Índice IPI</th>
@@ -227,7 +274,7 @@
               </tr>
             </thead>
             <tbody id="triage-table-body" class="divide-y divide-slate-800/80">
-              <!-- Se puebla dinámicamente -->
+              <!-- Generado dinámicamente -->
             </tbody>
           </table>
         </div>
@@ -240,40 +287,47 @@
         <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-3">
           <div>
             <h2 class="text-base font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-bolt-lightning text-amber-400"></i> Simulación en Cascada: Incendio + HazMat Industrial + Apagón
+              <i class="fa-solid fa-bolt-lightning text-amber-400"></i> Simulación en Cascada: Incendio + HazMat + Apagón + Aluvión
             </h2>
-            <p class="text-xs text-slate-400">Modela cómo el uso de suelo industrial y campamentos amplifican la catástrofe en Valparaíso</p>
+            <p class="text-xs text-slate-400">Compruebe cómo el sistema resuelve simultáneamente emergencias concurrentes en Valparaíso</p>
           </div>
           <button onclick="ejecutarSimulacionCascada()" class="bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
-            <i class="fa-solid fa-play"></i> Ejecutar Escenario Múltiple
+            <i class="fa-solid fa-play"></i> Simular Catástrofe Múltiple
           </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
           <div class="p-4 bg-slate-800/60 rounded-xl border border-slate-700/70 space-y-2">
-            <b class="text-orange-400 flex items-center gap-2">
-              <i class="fa-solid fa-tents"></i> 1. Impacto en Campamentos
+            <b class="text-red-400 flex items-center gap-2">
+              <i class="fa-solid fa-fire"></i> 1. Incendio en Campamento
             </b>
-            <p class="text-slate-400 text-[11px]">En tomas de laderas (C° Rodelillo y San Roque), las viviendas de madera y zinc aceleran la velocidad de propagación. Requiere evacuación forzada antes de cercar quebradas.</p>
+            <p class="text-slate-400 text-[11px]">Avance de fuego sobre Cerro Rodelillo / Toma Los Copihues. 195 casas de madera/zinc en peligro inminente.</p>
           </div>
 
           <div class="p-4 bg-slate-800/60 rounded-xl border border-slate-700/70 space-y-2">
             <b class="text-purple-400 flex items-center gap-2">
-              <i class="fa-solid fa-industry"></i> 2. Impacto en Zonas Industriales
+              <i class="fa-solid fa-industry"></i> 2. Volcamiento HazMat
             </b>
-            <p class="text-slate-400 text-[11px]">Depósitos de combustibles y plantas químicas en Camino La Pólvora y Placilla entran en riesgo térmico. Se activa protocolo HazMat de Bomberos para enfriamiento perimetral.</p>
+            <p class="text-slate-400 text-[11px]">Camión de combustible desbarrancado en Santos Ossa. Corta el ingreso desde Santiago y Ruta 68.</p>
           </div>
 
           <div class="p-4 bg-slate-800/60 rounded-xl border border-slate-700/70 space-y-2">
             <b class="text-amber-400 flex items-center gap-2">
-              <i class="fa-solid fa-plug-circle-exclamation"></i> 3. Colapso de Red & Apagón
+              <i class="fa-solid fa-plug-circle-xmark"></i> 3. Apagón Generalizado
             </b>
-            <p class="text-slate-400 text-[11px]">La caída de subestaciones interrumpe bombas de agua y desconecta a 35 electrodependientes en cerros. Despacho urgente de generadores portátiles a domicilio.</p>
+            <p class="text-slate-400 text-[11px]">Subestación Peñuelas desconectada. 35 pacientes electrodependientes en cerros con menos de 2h de batería.</p>
+          </div>
+
+          <div class="p-4 bg-slate-800/60 rounded-xl border border-slate-700/70 space-y-2">
+            <b class="text-cyan-400 flex items-center gap-2">
+              <i class="fa-solid fa-water"></i> 4. Rotura de Matriz / Quebradas
+            </b>
+            <p class="text-slate-400 text-[11px]">Lavado de suelo y desestabilización de ladera en Quebrada Verde. Bloqueo de pasajes peatonales.</p>
           </div>
         </div>
 
         <div id="sim-terminal" class="p-4 bg-slate-950 rounded-lg font-mono text-[11px] text-slate-300 border border-slate-800 space-y-1">
-          <p class="text-slate-500">> Simulador listo. Haga clic en "Ejecutar Escenario Múltiple" para observar la respuesta táctica del puesto de mando.</p>
+          <p class="text-slate-500">> Puesto de Mando en espera. Haga clic en "Simular Catástrofe Múltiple" para evaluar el despacho coordinado.</p>
         </div>
       </div>
     </div>
@@ -285,9 +339,9 @@
           <div class="flex justify-between items-center border-b border-slate-800 pb-3">
             <div>
               <h2 class="text-base font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-file-invoice text-red-500"></i> Pre-FIBE Digital Inteligente
+                <i class="fa-solid fa-file-invoice text-red-500"></i> Formulario Táctico Pre-FIBE
               </h2>
-              <p class="text-xs text-slate-400">Levantamiento en terreno con pre-clasificación de uso de suelo y RSH</p>
+              <p class="text-xs text-slate-400">Validación expedita de 2 minutos por predio con datos precargados del RSH</p>
             </div>
             <span class="text-xs font-mono bg-blue-900/60 text-blue-300 border border-blue-700/50 px-2.5 py-1 rounded">ESTÁNDAR EDAN/HXL</span>
           </div>
@@ -303,19 +357,19 @@
               </select>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">RUT Jefatura de Hogar / Encargado</label>
+              <label class="block text-slate-400 mb-1">RUT Jefatura de Hogar</label>
               <input type="text" id="fibe-rut" value="14.892.341-2" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Integrantes Familiares / Trabajadores</label>
+              <label class="block text-slate-400 mb-1">Integrantes del Hogar</label>
               <input type="number" id="fibe-integrantes" value="4" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Personas con Dependencia Severa / Cuidados</label>
+              <label class="block text-slate-400 mb-1">Personas con Dependencia Severa / Cuidado</label>
               <input type="number" id="fibe-dependientes" value="1" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Nivel de Daño Estructural</label>
+              <label class="block text-slate-400 mb-1">Grado de Daño en Vivienda</label>
               <select id="fibe-dano" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
                 <option value="Destruida Totalmente (Rojo)">Destruida Totalmente (Rojo)</option>
                 <option value="Inhabitable Mayor (Naranja)">Inhabitable Mayor (Naranja)</option>
@@ -324,17 +378,16 @@
               </select>
             </div>
             <div>
-              <label class="block text-slate-400 mb-1">Tipo de Ayuda Requerida</label>
+              <label class="block text-slate-400 mb-1">Destino Inmediato Requerido</label>
               <select id="fibe-necesidad" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white">
+                <option value="Traslado a Albergue Renato Raggio (Accesible PMR)">Traslado a Albergue Renato Raggio (Accesible PMR)</option>
                 <option value="Vivienda Provisoria + Bono Enseres">Vivienda Provisoria + Bono Enseres</option>
-                <option value="Traslado a Albergue Renato Raggio (PMR)">Traslado a Albergue Renato Raggio (PMR)</option>
-                <option value="Enfriamiento HazMat / Cortafuegos">Enfriamiento HazMat / Cortafuegos</option>
                 <option value="Kit Habitabilidad Básica">Kit Habitabilidad Básica</option>
               </select>
             </div>
             <div class="sm:col-span-2 pt-2">
               <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold text-white py-2.5 rounded-lg shadow text-xs flex items-center justify-center gap-2 transition">
-                <i class="fa-solid fa-floppy-disk"></i> Registrar y Validar Catastro Ficha
+                <i class="fa-solid fa-floppy-disk"></i> Registrar y Validar en Servidor Local (Edge Offline)
               </button>
             </div>
           </form>
@@ -350,10 +403,6 @@
             <div class="p-3 bg-slate-800/70 rounded-lg flex justify-between items-center">
               <span class="text-slate-400">Casas Destruidas en Campamentos:</span>
               <span class="font-bold text-orange-400" id="stat-campamentos">195</span>
-            </div>
-            <div class="p-3 bg-slate-800/70 rounded-lg flex justify-between items-center">
-              <span class="text-slate-400">Instalaciones Industriales Afectadas:</span>
-              <span class="font-bold text-purple-400" id="stat-industrias">3</span>
             </div>
             <div class="p-3 bg-slate-800/70 rounded-lg flex justify-between items-center">
               <span class="text-slate-400">Postrados con Albergue Asignado:</span>
@@ -375,7 +424,7 @@
             <h2 class="text-base font-bold text-white flex items-center gap-2">
               <i class="fa-solid fa-calculator text-emerald-400"></i> Calculadora Paramétrica de Fondos de Emergencia (SENAPRED)
             </h2>
-            <p class="text-xs text-slate-400">Genera la solicitud presupuestaria oficial (Informe Alfa) basada en decretos y costos históricos del Estado</p>
+            <p class="text-xs text-slate-400">Informe Alfa consolidado para asignación presupuestaria inmediata</p>
           </div>
           <button onclick="generarInformeAlfa()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow transition">
             <i class="fa-solid fa-file-pdf"></i> Generar Solicitud Formal Fondos Alfa
@@ -383,7 +432,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Costos Paramétricos y Fuentes -->
           <div class="space-y-3 text-xs">
             <h3 class="font-bold text-slate-300">Matriz de Costos Unitarios Oficiales</h3>
 
@@ -392,7 +440,7 @@
                 <span>Vivienda de Emergencia Provisoria (24 m²):</span>
                 <span>$4.850.000 CLP</span>
               </div>
-              <p class="text-[11px] text-slate-400">Fuente: Licitaciones públicas SENAPRED / MINVU para kit de paneles aislados y baño en pendientes.</p>
+              <p class="text-[11px] text-slate-400">Fuente: Licitaciones públicas SENAPRED / MINVU para kit aislado y baño en pendientes.</p>
             </div>
 
             <div class="p-3 bg-slate-800/70 rounded border border-slate-700 space-y-1">
@@ -420,7 +468,6 @@
             </div>
           </div>
 
-          <!-- Total Consolidado -->
           <div class="bg-slate-950 p-6 rounded-xl border border-emerald-500/30 flex flex-col justify-between">
             <div>
               <span class="text-xs text-emerald-400 font-bold uppercase tracking-wider">Presupuesto Paramétrico Consolidado</span>
@@ -436,7 +483,7 @@
             </div>
             
             <div class="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
-              Expediente digital generado automáticamente para la Subsecretaría del Interior y Gobiernos Regionales (FNDR).
+              Expediente digital listo para envío directo a la Subsecretaría del Interior y Fondo Nacional de Reconstrucción.
             </div>
           </div>
         </div>
@@ -446,7 +493,7 @@
   </main>
 
   <script>
-    // Sectores con clasificación explícita de USO DE SUELO
+    // Capas de datos completas y georreferenciadas de Valparaíso
     const sectoresValparaiso = [
       { 
         nombre: "Cerro Rodelillo / San Roque", 
@@ -540,7 +587,40 @@
       }
     ];
 
-    let map, markers = [];
+    // Hospitales de Valparaíso
+    const hospitales = [
+      { nombre: "Hospital Carlos Van Buren", lat: -33.0505, lng: -71.6110, tipo: "Base / Traumatología", camas: 420 },
+      { nombre: "Hospital Eduardo Pereira", lat: -33.0435, lng: -71.5920, tipo: "Medicina Interna / Tórax", camas: 180 }
+    ];
+
+    // Red de CESFAM de Cerros
+    const cesfamList = [
+      { nombre: "CESFAM Rodelillo", lat: -33.0580, lng: -71.5790, cerro: "Rodelillo", backup: "Grupo Electrógeno Inverter" },
+      { nombre: "CESFAM Esperanza", lat: -33.0420, lng: -71.6180, cerro: "Cerro Esperanza", backup: "Batería Respaldo 4h" },
+      { nombre: "CESFAM Cordillera", lat: -33.0470, lng: -71.6310, cerro: "Cerro Cordillera", backup: "Generador Autónomo" },
+      { nombre: "CESFAM Marcelo Mena", lat: -33.0475, lng: -71.6210, cerro: "Cerro Florida", backup: "Grupo Electrógeno" },
+      { nombre: "CESFAM Puertas Negras", lat: -33.0320, lng: -71.6420, cerro: "Playa Ancha Alto", backup: "Generador Autónomo" },
+      { nombre: "CESFAM Placeres", lat: -33.0350, lng: -71.5880, cerro: "Cerro Los Placeres", backup: "Generador Autónomo" }
+    ];
+
+    // Albergues Temporales e Inclusivos
+    const alberguesList = [
+      { nombre: "Polideportivo Renato Raggio", lat: -33.0230, lng: -71.6380, sector: "Playa Ancha", cap: 250, accesible: "Sí (Rampas, Baños PMR, Generador Propio)" },
+      { nombre: "Liceo Eduardo de la Barra", lat: -33.0490, lng: -71.6130, sector: "Plan Colón", cap: 180, accesible: "Parcial (Piso 1 Plano)" },
+      { nombre: "Escuela Grecia", lat: -33.0485, lng: -71.6100, sector: "Plan Pedro Montt", cap: 120, accesible: "Parcial (Acceso Rampa)" },
+      { nombre: "Gimnasio Escuela Rodelillo", lat: -33.0590, lng: -71.5810, sector: "Cerro Rodelillo", cap: 90, accesible: "Básica" }
+    ];
+
+    // Puntos de Bloqueo de Rutas (Cortes Críticos)
+    const cortesViales = [
+      { nombre: "Corte Troncal Santos Ossa (Ruta 68)", lat: -33.0530, lng: -71.5950, causa: "Volcamiento de camión químico HazMat", estado: "BLOQUEADA TOTAL" },
+      { nombre: "Corte Camino La Pólvora (Acceso Alto)", lat: -33.0640, lng: -71.5750, causa: "Derrumbe de ladera y avance de fuego", estado: "BLOQUEADA TOTAL" },
+      { nombre: "Corte Pasaje La Colina (Rodelillo)", lat: -33.0570, lng: -71.5820, causa: "Postes caídos y escombros", estado: "PASO SOLO PEATONAL" }
+    ];
+
+    let map;
+    let markersLayerGroup = L.layerGroup();
+    let roadsLayerGroup = L.layerGroup();
 
     function initMap() {
       map = L.map('map').setView([-33.0480, -71.6050], 13);
@@ -548,71 +628,195 @@
         attribution: '&copy; OpenStreetMap'
       }).addTo(map);
 
-      // Hospital Carlos Van Buren
-      L.marker([-33.0505, -71.6110]).addTo(map)
-        .bindPopup("<b>Hospital Carlos Van Buren</b><br>Estado: Operativo (Puesto Base de Derivación Traumatológica)");
+      markersLayerGroup.addTo(map);
+      roadsLayerGroup.addTo(map);
 
-      // CESFAM Rodelillo
-      L.marker([-33.0580, -71.5790]).addTo(map)
-        .bindPopup("<b>CESFAM Rodelillo</b><br>Estado: Respaldado por Grupo Electrógeno Inverter");
-
-      // Albergue Polideportivo Renato Raggio
-      L.marker([-33.0230, -71.6380]).addTo(map)
-        .bindPopup("<b>Albergue Polideportivo Renato Raggio</b><br>Accesibilidad Universal Garantizada (Capacidad: 250)");
-
-      renderMarkers();
+      renderAllMapElements();
     }
 
-    function renderMarkers() {
-      markers.forEach(m => map.removeLayer(m));
-      markers = [];
+    // Función para crear íconos circulares estilizados en SVG/HTML
+    function createCustomIcon(bgColor, iconClass, borderColor = '#ffffff') {
+      return L.divIcon({
+        className: 'custom-map-icon',
+        html: `<div style="background-color: ${bgColor}; border: 2px solid ${borderColor}; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                 <i class="${iconClass}" style="color: white; font-size: 13px;"></i>
+               </div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+    }
 
+    function renderAllMapElements() {
+      markersLayerGroup.clearLayers();
+      roadsLayerGroup.clearLayers();
+
+      const showPostrados = document.getElementById('layer-postrados').checked;
+      const showElectro = document.getElementById('layer-electro').checked;
+      const showBloqueos = document.getElementById('layer-bloqueos').checked;
+      const showHospitales = document.getElementById('layer-hospitales').checked;
+      const showCesfam = document.getElementById('layer-cesfam').checked;
+      const showAlbergues = document.getElementById('layer-albergues').checked;
       const showCampamentos = document.getElementById('layer-campamentos').checked;
       const showIndustrias = document.getElementById('layer-industrias').checked;
-      const showResidencial = document.getElementById('layer-residencial').checked;
 
+      // 1. ZONAS DE USO DE SUELO Y POLÍGONOS TERRITORIALES
       sectoresValparaiso.forEach(sec => {
-        // Filtrar según uso de suelo
         if (sec.tipoClase === 'campamento' && !showCampamentos) return;
         if (sec.tipoClase === 'industria' && !showIndustrias) return;
-        if (sec.tipoClase === 'residencial' && !showResidencial) return;
 
         let color = '#3b82f6';
-        if (sec.tipoClase === 'campamento') color = '#f97316'; // Naranja
-        else if (sec.tipoClase === 'industria') color = '#a855f7'; // Púrpura HazMat
-        else if (sec.ipi > 0.85) color = '#ef4444'; // Rojo crítico
+        if (sec.tipoClase === 'campamento') color = '#f97316'; // Naranja Campamento
+        else if (sec.tipoClase === 'industria') color = '#9333ea'; // Púrpura Industria
+        else if (sec.ipi > 0.85) color = '#ef4444'; // Rojo Crítico
 
         let circle = L.circle([sec.lat, sec.lng], {
           color: color,
           fillColor: color,
-          fillOpacity: 0.5,
-          radius: 500
-        }).addTo(map);
+          fillOpacity: 0.35,
+          radius: 550,
+          weight: 2
+        });
 
         circle.bindPopup(`
           <div class="text-slate-900 text-xs space-y-1">
-            <div class="font-bold text-sm text-slate-900 border-b pb-1">${sec.nombre}</div>
+            <div class="font-bold text-sm text-slate-900 border-b pb-1 flex justify-between">
+              <span>${sec.nombre}</span>
+            </div>
             <div><b>Uso de Suelo:</b> <span class="font-bold text-indigo-700">${sec.tipoSuelo}</span></div>
             <div class="text-slate-600">${sec.detalleSuelo}</div>
             <div class="pt-1"><b>Índice IPI:</b> <span class="font-bold text-red-600">${sec.ipi} (${sec.prioridad})</span></div>
-            <div><b>Dependencia Severa:</b> ${sec.postrados} personas</div>
-            <div><b>Electrodependientes:</b> ${sec.electro} pacientes</div>
+            <div><b>Dependencia Severa:</b> <span class="text-red-700 font-bold">${sec.postrados}</span> personas</div>
+            <div><b>Electrodependientes:</b> <span class="text-amber-700 font-bold">${sec.electro}</span> pacientes</div>
             <div><b>Vialidad:</b> ${sec.vias}</div>
           </div>
         `);
-        markers.push(circle);
+        markersLayerGroup.addLayer(circle);
+
+        // Si la capa de postrados está activa, colocamos marcador de concentración rojo carmesí
+        if (showPostrados && sec.postrados > 100) {
+          let postradoMarker = L.marker([sec.lat + 0.0015, sec.lng - 0.002], {
+            icon: createCustomIcon('#dc2626', 'fa-solid fa-bed-pulse')
+          });
+          postradoMarker.bindPopup(`
+            <div class="text-slate-900 text-xs">
+              <b class="text-red-600 text-sm">Foco de Dependencia Severa: ${sec.nombre}</b><br>
+              <b>Total personas postradas:</b> ${sec.postrados}<br>
+              <span class="text-slate-600">Requieren camillas rígidas y cuadrillas de extracción física en pasajes.</span>
+            </div>
+          `);
+          markersLayerGroup.addLayer(postradoMarker);
+        }
+
+        // Si la capa de electrodependientes está activa, colocamos marcador amarillo
+        if (showElectro && sec.electro > 0) {
+          let electroMarker = L.marker([sec.lat - 0.002, sec.lng + 0.002], {
+            icon: createCustomIcon('#eab308', 'fa-solid fa-bolt', '#713f12')
+          });
+          electroMarker.bindPopup(`
+            <div class="text-slate-900 text-xs">
+              <b class="text-amber-600 text-sm">Pacientes Electrodependientes (SEC)</b><br>
+              <b>Sector:</b> ${sec.nombre}<br>
+              <b>Pacientes en riesgo vital:</b> ${sec.electro}<br>
+              <span class="text-slate-600">Autonomía de baterías < 2 horas. Despacho urgente de generador portátil.</span>
+            </div>
+          `);
+          markersLayerGroup.addLayer(electroMarker);
+        }
       });
+
+      // 2. CORTES DE RUTA (ROSA NEÓN / ROJO FUCSIA)
+      if (showBloqueos) {
+        cortesViales.forEach(corte => {
+          let corteMarker = L.marker([corte.lat, corte.lng], {
+            icon: createCustomIcon('#e11d48', 'fa-solid fa-ban', '#ffffff')
+          });
+          corteMarker.bindPopup(`
+            <div class="text-slate-900 text-xs">
+              <b class="text-rose-600 text-sm">${corte.nombre}</b><br>
+              <b>Estado:</b> <span class="bg-rose-100 text-rose-800 px-1 rounded font-bold">${corte.estado}</span><br>
+              <b>Causa:</b> ${corte.cause || corte.causa}<br>
+              <span class="text-red-700 font-semibold">Alerta Bomberos: Evitar subida de carros bomba por esta vía.</span>
+            </div>
+          `);
+          markersLayerGroup.addLayer(corteMarker);
+
+          // Círculo de radio de corte
+          let corteRadius = L.circle([corte.lat, corte.lng], {
+            color: '#f43f5e',
+            fillColor: '#f43f5e',
+            fillOpacity: 0.35,
+            radius: 280,
+            dashArray: '6, 6'
+          });
+          roadsLayerGroup.addLayer(corteRadius);
+        });
+      }
+
+      // 3. HOSPITALES (AZUL REAL)
+      if (showHospitales) {
+        hospitales.forEach(hosp => {
+          let hospMarker = L.marker([hosp.lat, hosp.lng], {
+            icon: createCustomIcon('#2563eb', 'fa-solid fa-hospital', '#ffffff')
+          });
+          hospMarker.bindPopup(`
+            <div class="text-slate-900 text-xs">
+              <b class="text-blue-700 text-sm">${hosp.nombre}</b><br>
+              <b>Complejidad:</b> ${hosp.tipo}<br>
+              <b>Dotación de Camas:</b> ${hosp.camas}<br>
+              <span class="text-emerald-700 font-semibold">Generador de respaldo de alta capacidad: Operativo</span>
+            </div>
+          `);
+          markersLayerGroup.addLayer(hospMarker);
+        });
+      }
+
+      // 4. CESFAM DE CERROS (CIAN / CALIPSO)
+      if (showCesfam) {
+        cesfamList.forEach(ces => {
+          let cesMarker = L.marker([ces.lat, ces.lng], {
+            icon: createCustomIcon('#06b6d4', 'fa-solid fa-house-medical', '#ffffff')
+          });
+          cesMarker.bindPopup(`
+            <div class="text-slate-900 text-xs">
+              <b class="text-cyan-700 text-sm">${ces.nombre}</b><br>
+              <b>Cerro:</b> ${ces.cerro}<br>
+              <b>Soporte Eléctrico:</b> ${ces.backup}<br>
+              <span class="text-slate-700">Punto de triage ambulatorio y despacho de enfermería a terreno.</span>
+            </div>
+          `);
+          markersLayerGroup.addLayer(cesMarker);
+        });
+      }
+
+      // 5. ALBERGUES TEMPORALES E INCLUSIVOS (VERDE ESMERALDA)
+      if (showAlbergues) {
+        alberguesList.forEach(alb => {
+          let albMarker = L.marker([alb.lat, alb.lng], {
+            icon: createCustomIcon('#10b981', 'fa-solid fa-person-shelter', '#ffffff')
+          });
+          albMarker.bindPopup(`
+            <div class="text-slate-900 text-xs">
+              <b class="text-emerald-700 text-sm">${alb.nombre}</b><br>
+              <b>Sector:</b> ${alb.sector}<br>
+              <b>Capacidad Albergados:</b> ${alb.cap} personas<br>
+              <b>Accesibilidad Universal:</b> <span class="font-bold text-emerald-800">${alb.accesible}</span><br>
+              <span class="text-slate-600">Recomendado para familias con menores Teletón y adultos mayores postrados.</span>
+            </div>
+          `);
+          markersLayerGroup.addLayer(albMarker);
+        });
+      }
     }
 
     function toggleLayers() {
-      renderMarkers();
+      renderAllMapElements();
     }
 
     function calcularRutaOptima() {
       const out = document.getElementById('route-output');
-      out.innerHTML = "<span class='text-amber-400'>Evaluando cortes viales y perímetros industriales HazMat...</span>";
+      out.innerHTML = "<span class='text-amber-400'>Consultando grafo vial: Evitando Santos Ossa (HazMat) y Camino La Pólvora (Corte)...</span>";
       setTimeout(() => {
-        out.innerHTML = "<b class='text-emerald-400'>Ruta Segura Generada:</b> Evitando Santos Ossa por HazMat en Peñuelas -> Desvío por Variante Agua Santa -> Av. Argentina -> Subida Washington despejada para camiones cisterna y ambulancias.";
+        out.innerHTML = "<b class='text-emerald-400'>Ruta Segura Habilitada:</b> Desvío por Variante Agua Santa -> Av. Argentina -> Subida Washington despejada para camiones cisterna de Bomberos y ambulancias SAMU hacia C° Rodelillo. Tiempo est.: 18 min.";
       }, 700);
     }
 
@@ -624,7 +828,7 @@
         let sueloBadge = item.tipoClase === 'campamento' 
           ? '<span class="px-2 py-0.5 rounded text-[10px] bg-orange-500/20 text-orange-400 border border-orange-500/30 font-semibold">Campamento</span>' 
           : (item.tipoClase === 'industria' 
-             ? '<span class="px-2 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 font-semibold">Industrial / HazMat</span>'
+             ? '<span class="px-2 py-0.5 rounded text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 font-semibold">Industrial HazMat</span>' 
              : '<span class="px-2 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/30 font-semibold">Residencial</span>');
 
         let row = `
@@ -637,7 +841,7 @@
             <td class="p-3 font-black text-white text-sm">${item.ipi}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${badgeClass}">${item.prioridad}</span></td>
             <td class="p-3 text-center">
-              <button onclick="alert('Misión táctica despachada a: ${item.nombre}. Uso de suelo registrado: ${item.tipoSuelo}')" class="bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1 rounded text-[11px] transition">Despachar</button>
+              <button onclick="alert('Misión táctica despachada a: ${item.nombre}. Uso de suelo: ${item.tipoSuelo}')" class="bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1 rounded text-[11px] transition">Despachar</button>
             </td>
           </tr>
         `;
@@ -710,3 +914,5 @@
   </script>
 </body>
 </html>
+index.html
+Mostrando index.html.
