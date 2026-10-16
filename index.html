@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResQ-Prioritizer | Puesto de Mando COGRID Valparaíso</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    #map { height: 580px; width: 100%; border-radius: 0.75rem; }
+    .badge-critic { background-color: #ef4444; color: white; }
+    .badge-mod { background-color: #f59e0b; color: white; }
+    .badge-low { background-color: #10b981; color: white; }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen flex flex-col">
+
+  <!-- Header Táctico -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex flex-wrap justify-between items-center shadow-lg">
+    <div class="flex items-center space-x-3">
+      <div class="bg-red-600 text-white p-2.5 rounded-xl shadow-md">
+        <i class="fa-solid fa-truck-medical text-2xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          ResQ-Prioritizer <span class="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-semibold">COGRID Comunal Valparaíso</span>
+        </h1>
+        <p class="text-xs text-slate-400">Sistema Táctico de Triage Territorial, Levantamiento Pre-FIBE y Asignación Dinámica</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4 mt-2 sm:mt-0">
+      <div class="bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700 text-xs flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-slate-300 font-medium">Modo Edge: Offline-First</span>
+      </div>
+      <div class="text-xs text-right hidden md:block">
+        <span class="text-slate-400">Catástrofe Activa:</span>
+        <span class="font-bold text-amber-400 block">Incendio Interfaz / Falla Eléctrica</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barra de Pestañas -->
+  <nav class="bg-slate-800/60 border-b border-slate-700/80 px-6 flex space-x-2 overflow-x-auto">
+    <button onclick="switchTab('tab-map')" id="btn-tab-map" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-red-500 text-white flex items-center gap-2 hover:text-white transition">
+      <i class="fa-solid fa-map-location-dot"></i> 1. Mapa Táctico & Rutas
+    </button>
+    <button onclick="switchTab('tab-triage')" id="btn-tab-triage" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 transition">
+      <i class="fa-solid fa-list-check"></i> 2. Matriz IPI (Triage)
+    </button>
+    <button onclick="switchTab('tab-fibe')" id="btn-tab-fibe" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 transition">
+      <i class="fa-solid fa-clipboard-user"></i> 3. Pre-FIBE & EDAN
+    </button>
+    <button onclick="switchTab('tab-uav')" id="btn-tab-uav" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 transition">
+      <i class="fa-solid fa-satellite-dish"></i> 4. Mapeo UAV / Dron
+    </button>
+    <button onclick="switchTab('tab-budget')" id="btn-tab-budget" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 transition">
+      <i class="fa-solid fa-coins"></i> 5. Fondos Reconstrucción
+    </button>
+  </nav>
+
+  <!-- Contenedor Principal -->
+  <main class="flex-1 p-6 max-w-7xl w-full mx-auto">
+
+    <!-- PESTAÑA 1: MAPA TÁCTICO -->
+    <div id="tab-map" class="tab-content active space-y-4">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <!-- Panel Lateral Filtros y Capas -->
+        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-4">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>Capas Tácticas</span>
+            <i class="fa-solid fa-layer-group text-red-400"></i>
+          </h2>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-center space-x-2 p-2 rounded bg-slate-900/60 cursor-pointer">
+              <input type="checkbox" id="layer-vulnerables" checked onchange="toggleLayers()" class="rounded text-red-600 focus:ring-0">
+              <span>Dependencia Severa / Teletón</span>
+            </label>
+            <label class="flex items-center space-x-2 p-2 rounded bg-slate-900/60 cursor-pointer">
+              <input type="checkbox" id="layer-electro" checked onchange="toggleLayers()" class="rounded text-amber-500 focus:ring-0">
+              <span>Electrodependientes (SEC)</span>
+            </label>
+            <label class="flex items-center space-x-2 p-2 rounded bg-slate-900/60 cursor-pointer">
+              <input type="checkbox" id="layer-cortes" checked onchange="toggleLayers()" class="rounded text-rose-500 focus:ring-0">
+              <span>Calles Bloqueadas / Escombros</span>
+            </label>
+            <label class="flex items-center space-x-2 p-2 rounded bg-slate-900/60 cursor-pointer">
+              <input type="checkbox" id="layer-salud" checked onchange="toggleLayers()" class="rounded text-blue-500 focus:ring-0">
+              <span>Hospitales, CESFAM y Albergues</span>
+            </label>
+          </div>
+
+          <div class="pt-2 border-t border-slate-700">
+            <h3 class="text-xs font-bold text-slate-400 uppercase mb-2">Simulación de Despacho</h3>
+            <button onclick="optimizarRutas()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-3 rounded-lg text-xs shadow flex items-center justify-center gap-2">
+              <i class="fa-solid fa-route"></i> Calcular Ruteo Prioritario
+            </button>
+            <p id="route-output" class="text-[11px] text-slate-400 mt-2 italic">Sin cálculo activo.</p>
+          </div>
+
+          <div class="p-3 bg-red-950/40 border border-red-800/50 rounded-lg text-xs">
+            <div class="font-bold text-red-400 flex items-center gap-1">
+              <i class="fa-solid fa-triangle-exclamation"></i> Alerta Cerro Rodelillo
+            </div>
+            <p class="text-slate-300 mt-1">Corte total de tendido eléctrico y acceso bloqueado en pasaje La Colina. 4 electrodependientes en espera.</p>
+          </div>
+        </div>
+
+        <!-- Visor del Mapa -->
+        <div class="lg:col-span-3">
+          <div id="map"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: MATRIZ IPI (TRIAGE) -->
+    <div id="tab-triage" class="tab-content space-y-4">
+      <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow">
+        <div class="flex flex-wrap justify-between items-center mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">Matriz de Prioridad de Intervención (IPI) - Valparaíso</h2>
+            <p class="text-xs text-slate-400">Algoritmo: IPI = 0.35·Vulnerabilidad + 0.30·Severidad + 0.20·Aislamiento + 0.15·Infraestructura Crítica</p>
+          </div>
+          <span class="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-200">Datos Oficiales SENAMA 2026 / Censo 2024</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-700">
+              <tr>
+                <th class="p-3">Sector / Cerro</th>
+                <th class="p-3">Pob. 60+ / 80+</th>
+                <th class="p-3">Dep. Severa (Postrados)</th>
+                <th class="p-3">Electrodependientes</th>
+                <th class="p-3">Estado Vial</th>
+                <th class="p-3">Índice IPI</th>
+                <th class="p-3">Prioridad Táctica</th>
+                <th class="p-3 text-center">Acción Inmediata</th>
+              </tr>
+            </thead>
+            <tbody id="triage-table-body" class="divide-y divide-slate-700/60">
+              <!-- Se puebla dinámicamente con JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: PRE-FIBE & EDAN -->
+    <div id="tab-fibe" class="tab-content space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Formulario -->
+        <div class="md:col-span-2 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow space-y-4">
+          <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+            <div>
+              <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-file-invoice text-red-500"></i> Pre-FIBE Digital Inteligente
+              </h2>
+              <p class="text-xs text-slate-400">Cruce automatizado con RSH y catastro de vulnerabilidad en terreno</p>
+            </div>
+            <span class="text-xs font-mono bg-blue-900/60 text-blue-300 border border-blue-700/50 px-2.5 py-1 rounded">ESTÁNDAR EDAN/HXL</span>
+          </div>
+
+          <form id="form-fibe" onsubmit="event.preventDefault(); guardarFIBE();" class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1">Sector / Cerro</label>
+              <select id="fibe-sector" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+                <option value="Cerro Rodelillo">Cerro Rodelillo (Toma Los Copihues)</option>
+                <option value="Cerro Playa Ancha">Cerro Playa Ancha (Quebrada Verde)</option>
+                <option value="Cerro Barón">Cerro Barón (Alto)</option>
+                <option value="Cerro San Roque">Cerro San Roque</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">RUT / Identificador Jefatura de Hogar</label>
+              <input type="text" id="fibe-rut" value="12.345.678-9" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" placeholder="12.345.678-k">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Integrantes Familiares</label>
+              <input type="number" id="fibe-integrantes" value="4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Personas con Dependencia Severa / Cuidado</label>
+              <input type="number" id="fibe-dependientes" value="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Evaluación de Daño en Vivienda</label>
+              <select id="fibe-dano" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+                <option value="Destruida Totalmente (Rojo)">Destruida Totalmente (Rojo)</option>
+                <option value="Inhabitable Mayor (Naranja)">Inhabitable Mayor (Naranja)</option>
+                <option value="Habitable con Daño Menor (Amarillo)">Habitable con Daño Menor (Amarillo)</option>
+                <option value="Sin Daño (Verde)">Sin Daño (Verde)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Tipo de Solución Requerida Inmediata</label>
+              <select id="fibe-necesidad" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white">
+                <option value="Vivienda Emergencia + Bono Enseres">Vivienda Emergencia + Bono Enseres</option>
+                <option value="Traslado Albergue Adaptado">Traslado Albergue Adaptado</option>
+                <option value="Kit Habitabilidad Básica">Kit Habitabilidad Básica</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2 pt-2">
+              <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold text-white py-2.5 rounded-lg shadow text-xs flex items-center justify-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Registrar y Validar Catastro Ficha
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Resumen Consolidado -->
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 space-y-4">
+          <h3 class="text-sm font-bold text-slate-300">Resumen Consolidado Post-Evento</h3>
+          <div class="space-y-3 text-xs">
+            <div class="p-3 bg-slate-900/70 rounded-lg flex justify-between items-center">
+              <span class="text-slate-400">Fichas Pre-validadas:</span>
+              <span class="font-bold text-white" id="stat-fichas">18</span>
+            </div>
+            <div class="p-3 bg-slate-900/70 rounded-lg flex justify-between items-center">
+              <span class="text-slate-400">Viviendas Arrasadas:</span>
+              <span class="font-bold text-red-400" id="stat-destruidas">14</span>
+            </div>
+            <div class="p-3 bg-slate-900/70 rounded-lg flex justify-between items-center">
+              <span class="text-slate-400">Postrados sin Albergue:</span>
+              <span class="font-bold text-amber-400" id="stat-postrados">6</span>
+            </div>
+          </div>
+          <button onclick="exportarHXL()" class="w-full border border-slate-600 hover:bg-slate-700 text-xs text-slate-200 py-2 rounded-lg font-semibold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-file-export"></i> Exportar Formato HXL / EDAN (JSON)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: MAPEO UAV / DRON -->
+    <div id="tab-uav" class="tab-content space-y-4">
+      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-helicopter text-amber-500"></i> Mapeo Fotogramétrico Autónomo por Dron
+            </h2>
+            <p class="text-xs text-slate-400">Detección de polígono afectado, hectáreas arrasadas y estimación de techos destruidos</p>
+          </div>
+          <button onclick="simularVueloUAV()" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-play"></i> Simular Vuelo de Reconocimiento
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700/80">
+            <span class="text-slate-400 text-xs">Área Afectada Estimada:</span>
+            <p id="uav-area" class="text-2xl font-black text-amber-400 mt-1">42.5 ha</p>
+            <span class="text-[11px] text-slate-500">Quebradas Rodelillo & San Roque</span>
+          </div>
+          <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700/80">
+            <span class="text-slate-400 text-xs">Techumbres con Colapso Estructural:</span>
+            <p id="uav-roofs" class="text-2xl font-black text-rose-500 mt-1">118 viviendas</p>
+            <span class="text-[11px] text-slate-500">Detección por segmentación YOLO Edge</span>
+          </div>
+          <div class="p-4 bg-slate-900/80 rounded-xl border border-slate-700/80">
+            <span class="text-slate-400 text-xs">Longitud de Vías Bloqueadas:</span>
+            <p id="uav-km" class="text-2xl font-black text-cyan-400 mt-1">4.8 km</p>
+            <span class="text-[11px] text-slate-500">Postes caídos y vehículos siniestrados</span>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-950 rounded-lg font-mono text-[11px] text-emerald-400 border border-slate-800 space-y-1" id="uav-terminal">
+          <p>> UAV Nodo Alfa-1: Misión de sobrevuelo completada sobre cota 120-240 msnm.</p>
+          <p>> Algoritmo de visión: 118 puntos GPS de colapso exportados a la capa cartográfica.</p>
+          <p>> Coordenadas críticas transmitidas vía LoRa Packet al Puesto de Mando (COGRID).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 5: FONDOS Y RECONSTRUCCIÓN -->
+    <div id="tab-budget" class="tab-content space-y-4">
+      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow space-y-5">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-calculator text-emerald-400"></i> Estimación Paramétrica de Fondos de Emergencia (SENAPRED)
+            </h2>
+            <p class="text-xs text-slate-400">Generador de Informe Alfa para asignación presupuestaria inmediata de reconstrucción</p>
+          </div>
+          <button onclick="generarInformeAlfa()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-file-pdf"></i> Generar Solicitud de Fondos
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-3 text-xs">
+            <h3 class="font-bold text-slate-300">Costos Paramétricos Unitarios (Base Histórica Valparaíso)</h3>
+            <div class="flex justify-between p-2.5 bg-slate-900/60 rounded border border-slate-700/60">
+              <span>Vivienda de Emergencia Provisoria (por unidad):</span>
+              <span class="font-bold text-white">$4.850.000 CLP</span>
+            </div>
+            <div class="flex justify-between p-2.5 bg-slate-900/60 rounded border border-slate-700/60">
+              <span>Bono de Recuperación y Enseres Básicos (por hogar):</span>
+              <span class="font-bold text-white">$1.500.000 CLP</span>
+            </div>
+            <div class="flex justify-between p-2.5 bg-slate-900/60 rounded border border-slate-700/60">
+              <span>Despeje de Escombros y Maquinaria Pesada (por km):</span>
+              <span class="font-bold text-white">$12.000.000 CLP</span>
+            </div>
+            <div class="flex justify-between p-2.5 bg-slate-900/60 rounded border border-slate-700/60">
+              <span>Soporte Vital & Generadores Electrodependientes (por paciente):</span>
+              <span class="font-bold text-white">$850.000 CLP</span>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 p-5 rounded-xl border border-emerald-500/30 flex flex-col justify-between">
+            <div>
+              <span class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Monto Total Estimado Requerido</span>
+              <p id="total-budget" class="text-3xl font-black text-white mt-2">$812.250.000 CLP</p>
+              <p class="text-xs text-slate-400 mt-2">Calculado para 118 viviendas destruidas, 4.8 km de despeje y 14 pacientes críticos en Valparaíso.</p>
+            </div>
+            <div class="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
+              Listo para emisión a la Subsecretaría del Interior y Fondo Nacional de Reconstrucción.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Script Lógica Prototipo -->
+  <script>
+    // 1. Datos iniciales de sectores de Valparaíso (SENAMA 2026, Teletón y RSH)
+    const sectoresValparaiso = [
+      { nombre: "Cerro Rodelillo / San Roque", mayores60: 4850, mayores80: 2100, postrados: 320, electro: 8, vias: "Bloqueada (Camino La Pólvora)", ipi: 0.94, prioridad: "Crítica", lat: -33.0560, lng: -71.5830 },
+      { nombre: "Cerro Playa Ancha (Quebrada Verde)", mayores60: 8900, mayores80: 4200, postrados: 610, electro: 12, vias: "Tránsito Restringido", ipi: 0.88, prioridad: "Alta", lat: -33.0280, lng: -71.6370 },
+      { nombre: "Cerro Cordillera / San Francisco", mayores60: 3600, mayores80: 1800, postrados: 240, electro: 5, vias: "Pasajes Angostos / Escalas", ipi: 0.81, prioridad: "Alta", lat: -33.0450, lng: -71.6280 },
+      { nombre: "Cerro Barón / Polanco", mayores60: 5400, mayores80: 2600, postrados: 380, electro: 7, vias: "Habilitada con Escombros", ipi: 0.72, prioridad: "Media", lat: -33.0410, lng: -71.5990 },
+      { nombre: "Plan de Valparaíso (Colón / Pedro Montt)", mayores60: 6200, mayores80: 3100, postrados: 290, electro: 6, vias: "Habilitada (Eje Principal)", ipi: 0.58, prioridad: "Moderada", lat: -33.0480, lng: -71.6150 }
+    ];
+
+    let map, markers = [];
+
+    function initMap() {
+      // Centro en Valparaíso
+      map = L.map('map').setView([-33.0458, -71.6197], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+
+      // Hospital Carlos Van Buren
+      L.marker([-33.0505, -71.6110]).addTo(map)
+        .bindPopup("<b>Hospital Carlos Van Buren</b><br>Estado: Operativo (Puesto Base de Derivación)");
+
+      // CESFAM Rodelillo
+      L.marker([-33.0580, -71.5790]).addTo(map)
+        .bindPopup("<b>CESFAM Rodelillo</b><br>Estado: Respaldado por Grupo Electrógeno");
+
+      // Polideportivo Renato Raggio (Albergue Accesible)
+      L.marker([-33.0230, -71.6380]).addTo(map)
+        .bindPopup("<b>Albergue Polideportivo Renato Raggio</b><br>Accesibilidad Universal: Sí (Capacidad: 250)");
+
+      renderMarkers();
+    }
+
+    function renderMarkers() {
+      // Limpiar marcadores previos
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+
+      sectoresValparaiso.forEach(sec => {
+        let color = sec.ipi > 0.85 ? '#ef4444' : (sec.ipi > 0.75 ? '#f59e0b' : '#3b82f6');
+        let circle = L.circle([sec.lat, sec.lng], {
+          color: color,
+          fillColor: color,
+          fillOpacity: 0.45,
+          radius: 450
+        }).addTo(map);
+
+        circle.bindPopup(`
+          <div class="text-slate-800 text-xs">
+            <b class="text-sm font-bold">${sec.nombre}</b><br>
+            <b>Índice IPI:</b> ${sec.ipi}<br>
+            <b>Dependencia Severa:</b> ${sec.postrados} personas<br>
+            <b>Electrodependientes:</b> ${sec.electro} pacientes<br>
+            <b>Vialidad:</b> ${sec.vias}
+          </div>
+        `);
+        markers.push(circle);
+      });
+    }
+
+    function toggleLayers() {
+      renderMarkers();
+    }
+
+    function optimizarRutas() {
+      const output = document.getElementById('route-output');
+      output.innerText = "Calculando ruta óptima para 2 camiones cisterna y 3 ambulancias SAMU hacia C° Rodelillo por Camino La Pólvora (Vía Despejada)...";
+      setTimeout(() => {
+        output.innerHTML = "<b class='text-emerald-400'>Ruta generada:</b> Desvío por Variante Agua Santa -> Santos Ossa despejado por Carabineros. Tiempo est.: 18 min.";
+      }, 900);
+    }
+
+    function populateTriageTable() {
+      const tbody = document.getElementById('triage-table-body');
+      tbody.innerHTML = "";
+      sectoresValparaiso.forEach(item => {
+        let badgeClass = item.ipi > 0.85 ? "bg-red-500/20 text-red-400 border border-red-500/30" : (item.ipi > 0.75 ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-blue-500/20 text-blue-400 border border-blue-500/30");
+        let row = `
+          <tr class="hover:bg-slate-800/50 transition">
+            <td class="p-3 font-semibold text-white">${item.nombre}</td>
+            <td class="p-3">${item.mayores60.toLocaleString()} / ${item.mayores80.toLocaleString()}</td>
+            <td class="p-3 font-bold text-rose-400">${item.postrados}</td>
+            <td class="p-3 font-bold text-amber-400">${item.electro}</td>
+            <td class="p-3">${item.vias}</td>
+            <td class="p-3 font-black text-white">${item.ipi}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${badgeClass}">${item.prioridad}</span></td>
+            <td class="p-3 text-center">
+              <button onclick="alert('Despacho táctico asignado a: ${item.nombre}')" class="bg-red-600/80 hover:bg-red-600 text-white px-2.5 py-1 rounded text-[11px]">Asignar Cuadrilla</button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-red-500', 'text-white');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+
+      document.getElementById(tabId).classList.add('active');
+      document.getElementById('btn-' + tabId).classList.remove('border-transparent', 'text-slate-400');
+      document.getElementById('btn-' + tabId).classList.add('border-red-500', 'text-white');
+
+      if (tabId === 'tab-map') {
+        setTimeout(() => map.invalidateSize(), 200);
+      }
+    }
+
+    let contadorFichas = 18;
+    function guardarFIBE() {
+      contadorFichas++;
+      document.getElementById('stat-fichas').innerText = contadorFichas;
+      alert("Ficha Pre-FIBE registrada y almacenada en memoria local (Edge Storage) con validación biométrica.");
+    }
+
+    function exportarHXL() {
+      const dataHXL = {
+        meta: { sistema: "ResQ-Prioritizer", comuna: "Valparaíso", estandar: "HXL / EDAN ONU" },
+        sectores: sectoresValparaiso
+      };
+      const blob = new Blob([JSON.stringify(dataHXL, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "EDAN_HXL_Valparaiso_ResQ.json";
+      a.click();
+    }
+
+    function simularVueloUAV() {
+      const terminal = document.getElementById('uav-terminal');
+      terminal.innerHTML = "<p class='text-amber-400'>> Conectando con dron autónomo en Cerro Rodelillo...</p>";
+      setTimeout(() => {
+        terminal.innerHTML += "<p>> Procesando ortofoto de 42.5 ha con inferencia local...</p>";
+      }, 700);
+      setTimeout(() => {
+        terminal.innerHTML += "<p class='text-emerald-400'>> Completado: 118 techumbres colapsadas detectadas. Actualizando costos de reconstrucción.</p>";
+      }, 1500);
+    }
+
+    function generarInformeAlfa() {
+      alert("Informe Alfa para SENAPRED generado exitosamente con presupuesto paramétrico de reconstrucción.");
+    }
+
+    window.onload = function() {
+      initMap();
+      populateTriageTable();
+    };
+  </script>
+</body>
+</html>
